@@ -78,13 +78,13 @@ static void display_time(struct tm *time) {
     "vier \nvor", "drei \nvor", "zwei \nvor", "eins \nvor"
   };
 
-   // Set Time for DEBUG
+   /*// Set Time for DEBUG
     int hour = 8;
     int min = 18;
-  /*
+  */
   int hour = time->tm_hour;
   int min = time->tm_min;
-  */
+  
   
   char minute_text[50];
   char hour_text[50];

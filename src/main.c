@@ -99,51 +99,75 @@ static void display_time(struct tm *time) {
   // Minute Text
   if (0 <= min && min <= 12) {
     strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
     layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
   }
   if (13 <= min && min <= 14) {
     strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
     layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), false);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
   }
   if (min == 15) {
     strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
     layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
   }
   if (16 <= min && min <= 19) {
     strcpy(minute_text , minute_string[min]);
     layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), false);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
   }
   if (20 <= min && min <= 29) {
     strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
     layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), false);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
   }
   if (min == 30) {
     strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
     layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
     //TODO: beides hoch rücken
   }
   if (31 <= min && min <= 39) {
     strcpy(minute_text , minute_string[min]);
     layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), false);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
   }
   if (min == 40) {
     strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
     layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
   }
   if (41 <= min && min <= 44) {
     strcpy(minute_text , minute_string[min]);
     layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), false);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
   }
   if (min == 45) {
     strcpy(minute_text , minute_string[min]);
     layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), false);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
   }
   if (46 <= min && min <= 47) {
     strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
     layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), false);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
   }
   if (48 <= min && min <= 60) {
     strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
     layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
   }
   

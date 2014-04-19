@@ -1,5 +1,5 @@
 #include <pebble.h>
-  
+
 static Window *window;
 static TextLayer *minuteLayer_2longlines;
 static TextLayer *minuteLayer_3longlines;
@@ -15,23 +15,26 @@ static void init_text_layers() {
   //GFont font_handle_three_lines = fonts_get_system_font(FONT_KEY_GOTHIC_28);
   
   // Configure Minute Layers
-  minuteLayer_3longlines = text_layer_create((GRect) { .origin = {10, 35}, .size = {134, 154}});
+  minuteLayer_3longlines = text_layer_create((GRect) { .origin = {10, 4}, .size = {134, 154}});
   text_layer_set_text_color(minuteLayer_3longlines, GColorWhite);
   text_layer_set_background_color(minuteLayer_3longlines, GColorClear);
   text_layer_set_font(minuteLayer_3longlines, fonts_load_custom_font(font_handle_three_lines));
-    
+  layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
+  
   minuteLayer_2longlines = text_layer_create((GRect) { .origin = {10, 35}, .size = {134, 154}});
   text_layer_set_text_color(minuteLayer_2longlines, GColorWhite);
   text_layer_set_background_color(minuteLayer_2longlines, GColorClear);
   text_layer_set_font(minuteLayer_2longlines, fonts_load_custom_font(font_handle_three_lines));
-    
+  layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
+  
   minuteLayer_2biglines = text_layer_create((GRect) {.origin = {10, 17}, .size = {134, 154}});
   text_layer_set_text_color(minuteLayer_2biglines, GColorWhite);
   text_layer_set_background_color(minuteLayer_2biglines, GColorClear);
   text_layer_set_font(minuteLayer_2biglines, bitham);
-    
+  layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
+  
   // Configure Hour Layer
-  hourLayer = text_layer_create((GRect) { .origin = {10, 100}, .size = {134, 154}});
+  hourLayer = text_layer_create((GRect) { .origin = {10, 103}, .size = {134, 154}});
   text_layer_set_text_color(hourLayer, GColorWhite);
   text_layer_set_background_color(hourLayer, GColorClear);
   text_layer_set_font(hourLayer, bithamBold);
@@ -64,26 +67,25 @@ static void display_time(struct tm *time) {
     "\npunkt", "eins \nnach", "zwei \nnach", "drei \nnach", "vier \nnach", "fünf \nnach",
     "sechs \nnach", "sieben \nnach", "acht \nnach", "neun \nnach", "zehn \nnach",
     "elf \nnach", "zwölf \nnach", "dreizehn nach", "vierzehn nach", "viertel nach",
-    "sechzehn nach", "siebzehn nach", "achtzehn nach", "neunzehn nach", "zehn vor halb",
+    "sech-\nzehn nach", "sieb-\nzehn nach", "acht-\nzehn nach", "neun-\nzehn nach", "zehn vor halb",
     "neun vor halb", "acht vor halb", "sieben vor halb", "sechs vor halb", "fünf vor halb",
     "vier vor halb", "drei vor halb", "zwei vor halb", "eins vor halb", "\nhalb",
     "eins nach halb", "zwei nach halb", "drei nach halb", "vier nach halb", "fünf nach halb",
     "sechs nach halb", "sieben nach halb", "acht nach halb", "neun nach halb", "zwanzig vor",
-    "elf nach halb", "zwölf nach halb", "dreizehn nach halb", "vierzehn nach halb", "dreiviertel",
+    "elf nach halb", "zwölf nach halb", "dreizehn nach halb", "vierzehn nach halb", "\ndrei-\nviertel",
     "vierzehn \nvor", "dreizehn \nvor", "zwölf \nvor", "elf \nvor", "zehn \nvor",
     "neun \nvor", "acht \nvor", "sieben \nvor", "sechs \nvor", "fünf \nvor",
     "vier \nvor", "drei \nvor", "zwei \nvor", "eins \nvor"
   };
 
-  ///*
-  int hour = 13;
-  int min = 31;
-  //*/
+   // Set Time for DEBUG
+    int hour = 8;
+    int min = 18;
   /*
   int hour = time->tm_hour;
   int min = time->tm_min;
   */
-
+  
   char minute_text[50];
   char hour_text[50];
   
@@ -97,22 +99,54 @@ static void display_time(struct tm *time) {
   // Minute Text
   if (0 <= min && min <= 12) {
     strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
+  }
+  if (13 <= min && min <= 14) {
+    strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), false);
+  }
+  if (min == 15) {
+    strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
+  }
+  if (16 <= min && min <= 19) {
+    strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), false);
+  }
+  if (20 <= min && min <= 29) {
+    strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), false);
   }
   if (min == 30) {
     strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
     //TODO: beides hoch rücken
   }
-  if (13 <= min && min <= 29) {
+  if (31 <= min && min <= 39) {
     strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), false);
   }
-  if (31 <= min && min <= 60) {
+  if (min == 40) {
     strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
   }
-   
+  if (41 <= min && min <= 44) {
+    strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), false);
+  }
+  if (min == 45) {
+    strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), false);
+  }
+  if (46 <= min && min <= 47) {
+    strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), false);
+  }
+  if (48 <= min && min <= 60) {
+    strcpy(minute_text , minute_string[min]);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
+  }
+  
   static char staticTimeText[50] = ""; // Needs to be static because it's used by the system later.
   strcpy(staticTimeText , "");
   strcat(staticTimeText , minute_text);

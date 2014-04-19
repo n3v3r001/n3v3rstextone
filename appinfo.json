@@ -1,0 +1,24 @@
+{
+    "versionCode": 1,
+    "versionLabel": "1.0",
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "uuid": "5a301614-84e4-42cc-b8ba-0e47da96f72b",
+    "resources": {
+        "media": [
+            {
+                "name": "FONT_TEST_34",
+                "type": "font",
+                "file": "fonts/Roboto-Thin[1].ttf"
+            }
+        ]
+    },
+    "longName": "n3v3rs text one",
+    "watchapp": {
+        "watchface": true
+    },
+    "companyName": "gattringerm@gmail.com",
+    "shortName": "n3v3rs text one"
+}

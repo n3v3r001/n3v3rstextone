@@ -14,7 +14,6 @@ static void toggle_bluetooth_icon(bool connected) { // Toggle bluetooth
   }
   else {
     bitmap_layer_set_bitmap(bluetooth_layer, bluetooth_connected_image);
-    //vibes_double_pulse();
   }
 }
 
@@ -106,13 +105,13 @@ static void display_time(struct tm *time) {
     "vier \nvor", "drei \nvor", "zwei \nvor", "eins \nvor"
   };
 
-   /*// Set Time for DEBUG
-    int hour = 8;
-    int min = 18;
-  */
+   // Set Time for DEBUG
+    int hour = 12;
+    int min = 15;
+  /*
   int hour = time->tm_hour;
   int min = time->tm_min;
-  
+  */
   
   char minute_text[50];
   char hour_text[50];

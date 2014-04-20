@@ -97,7 +97,7 @@ static void display_time(struct tm *time) {
     "sech-\nzehn nach", "sieb-\nzehn nach", "acht-\nzehn nach", "neun-\nzehn nach", "zehn vor halb",
     "neun vor halb", "acht vor halb", "sieben vor halb", "sechs vor halb", "fünf vor halb",
     "vier vor halb", "drei vor halb", "zwei vor halb", "eins vor halb", "\nhalb",
-    "eins nach halb", "zwei nach halb", "drei nach halb", "vier nach halb", "fünf nach halb",
+    "eins nach halb", "zwei nach halb", "drei nach halb", "vier\nnach halb", "fünf nach halb",
     "sechs nach halb", "sieben nach halb", "acht nach halb", "neun nach halb", "zwanzig vor",
     "elf nach halb", "zwölf nach halb", "dreizehn nach halb", "vierzehn nach halb", "\ndrei-\nviertel",
     "vierzehn \nvor", "dreizehn \nvor", "zwölf \nvor", "elf \nvor", "zehn \nvor",

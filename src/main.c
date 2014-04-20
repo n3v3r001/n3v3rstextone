@@ -1,10 +1,38 @@
 #include <pebble.h>
 
 static Window *window;
-static TextLayer *minuteLayer_2longlines;
-static TextLayer *minuteLayer_3longlines;
-static TextLayer *minuteLayer_2biglines; // The Minutes
+static TextLayer *minuteLayer_2longlines, *minuteLayer_3longlines, *minuteLayer_2biglines; // The Minutes
 static TextLayer *hourLayer; // The hours
+
+static GBitmap *bluetooth_connected_image, *bluetooth_disconnected_image; //Bluetooth images
+static BitmapLayer *bluetooth_layer; //Bluetooth layer
+
+static void toggle_bluetooth_icon(bool connected) { // Toggle bluetooth
+  if(!connected) {
+    bitmap_layer_set_bitmap(bluetooth_layer, bluetooth_disconnected_image);
+    vibes_long_pulse();
+  }
+  else {
+    bitmap_layer_set_bitmap(bluetooth_layer, bluetooth_connected_image);
+    //vibes_double_pulse();
+  }
+}
+
+void bluetooth_connection_callback(bool connected) {  //Bluetooth handler
+  toggle_bluetooth_icon(connected);
+}
+
+static void init_bluetooth_layers() {
+  bluetooth_connected_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BLUETOOTH_CONNECTED);
+  bluetooth_disconnected_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BLUETOOTH_DISCONNECTED);
+  GRect bluetooth_frame = (GRect) {
+    .origin = { .x = 129, .y = 2 },
+    .size = bluetooth_connected_image->bounds.size
+  };
+  bluetooth_layer = bitmap_layer_create(bluetooth_frame);
+  toggle_bluetooth_icon(bluetooth_connection_service_peek());
+  layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(bluetooth_layer));
+}
 
 static void init_text_layers() {
   
@@ -201,11 +229,19 @@ static void init(void) {
   time_t now = time(NULL);
   struct tm *tick_time = localtime(&now);
   display_time(tick_time);
+  init_bluetooth_layers();
   
   tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
+  bluetooth_connection_service_subscribe(bluetooth_connection_callback);
 }
 
 static void deinit(void) {
+  bluetooth_connection_service_unsubscribe();
+  layer_remove_from_parent(bitmap_layer_get_layer(bluetooth_layer));
+  bitmap_layer_destroy(bluetooth_layer);
+  gbitmap_destroy(bluetooth_connected_image);
+  gbitmap_destroy(bluetooth_disconnected_image);
+  
   window_destroy(window);
   tick_timer_service_unsubscribe();
 }

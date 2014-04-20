@@ -1,5 +1,5 @@
 {
-    "versionLabel": "1.4",
+    "versionLabel": "1.4.3",
     "uuid": "5a301614-84e4-42cc-b8ba-0e47da96f72b",
     "appKeys": {},
     "longName": "n3v3rs text one",
@@ -15,6 +15,12 @@
     "resources": {
         "media": [
             {
+                "menuIcon": true,
+                "type": "png",
+                "name": "MENU_IMAGE",
+                "file": "images/MENU_IMAGE.png"
+            },
+            {
                 "type": "png",
                 "name": "IMAGE_BLUETOOTH_CONNECTED",
                 "file": "images/icon_bluetooth_connected.png"
@@ -23,12 +29,6 @@
                 "type": "png",
                 "name": "IMAGE_BLUETOOTH_DISCONNECTED",
                 "file": "images/icon_bluetooth_disconnected.png"
-            },
-            {
-                "menuIcon": true,
-                "type": "png",
-                "name": "MENU_IMAGE",
-                "file": "images/MENU_IMAGE.png"
             },
             {
                 "type": "font",

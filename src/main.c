@@ -42,26 +42,26 @@ static void init_text_layers() {
   //GFont font_handle_three_lines = fonts_get_system_font(FONT_KEY_GOTHIC_28);
   
   // Configure Minute Layers
-  minuteLayer_3longlines = text_layer_create((GRect) { .origin = {10, 4}, .size = {134, 154}});
+  minuteLayer_3longlines = text_layer_create((GRect) { .origin = {5, 8}, .size = {134, 154}});
   text_layer_set_text_color(minuteLayer_3longlines, GColorWhite);
   text_layer_set_background_color(minuteLayer_3longlines, GColorClear);
   text_layer_set_font(minuteLayer_3longlines, fonts_load_custom_font(font_handle_three_lines));
   layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
   
-  minuteLayer_2longlines = text_layer_create((GRect) { .origin = {10, 35}, .size = {134, 154}});
+  minuteLayer_2longlines = text_layer_create((GRect) { .origin = {5, 39}, .size = {134, 154}});
   text_layer_set_text_color(minuteLayer_2longlines, GColorWhite);
   text_layer_set_background_color(minuteLayer_2longlines, GColorClear);
   text_layer_set_font(minuteLayer_2longlines, fonts_load_custom_font(font_handle_three_lines));
   layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
   
-  minuteLayer_2biglines = text_layer_create((GRect) {.origin = {10, 17}, .size = {134, 154}});
+  minuteLayer_2biglines = text_layer_create((GRect) {.origin = {5, 21}, .size = {134, 154}});
   text_layer_set_text_color(minuteLayer_2biglines, GColorWhite);
   text_layer_set_background_color(minuteLayer_2biglines, GColorClear);
   text_layer_set_font(minuteLayer_2biglines, bitham);
   layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
   
   // Configure Hour Layer
-  hourLayer = text_layer_create((GRect) { .origin = {10, 103}, .size = {134, 154}});
+  hourLayer = text_layer_create((GRect) { .origin = {5, 107}, .size = {134, 154}});
   text_layer_set_text_color(hourLayer, GColorWhite);
   text_layer_set_background_color(hourLayer, GColorClear);
   text_layer_set_font(hourLayer, bithamBold);
@@ -105,13 +105,14 @@ static void display_time(struct tm *time) {
     "vier \nvor", "drei \nvor", "zwei \nvor", "eins \nvor"
   };
 
-   // Set Time for DEBUG
-    int hour = 12;
-    int min = 15;
-  /*
+  // Set Time for DEBUG
+  //int hour = 8;
+  //int min = 37;
+  
+  // Set Time
   int hour = time->tm_hour;
   int min = time->tm_min;
-  */
+  
   
   char minute_text[50];
   char hour_text[50];
@@ -170,8 +171,8 @@ static void display_time(struct tm *time) {
   if (min == 40) {
     strcpy(minute_text , minute_string[min]);
     layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), false);
+    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
   }
   if (41 <= min && min <= 44) {
     strcpy(minute_text , minute_string[min]);

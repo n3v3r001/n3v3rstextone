@@ -1,29 +1,25 @@
 {
-    "versionLabel": "1.4.4",
     "uuid": "5a301614-84e4-42cc-b8ba-0e47da96f72b",
-    "appKeys": {},
-    "longName": "n3v3rs text one",
-    "versionCode": 1,
-    "shortName": "n3v3rs text one",
-    "companyName": "n3v3r",
     "capabilities": [
-        ""
+        "configurable"
     ],
-    "watchapp": {
-        "watchface": true
-    },
+    "companyName": "gattringerm@gmail.com",
     "resources": {
         "media": [
             {
-                "menuIcon": true,
-                "type": "png",
-                "name": "MENU_IMAGE",
-                "file": "images/MENU_IMAGE.png"
+                "type": "font",
+                "name": "FONT_TEST_34",
+                "file": "fonts/Roboto-Thin.ttf"
             },
             {
                 "type": "png",
-                "name": "IMAGE_BLUETOOTH_CONNECTED",
-                "file": "images/icon_bluetooth_connected.png"
+                "name": "IMAGE_BATTERY",
+                "file": "images/icon_battery.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BATTERY_CHARGE",
+                "file": "images/icon_battery_charge.png"
             },
             {
                 "type": "png",
@@ -31,10 +27,18 @@
                 "file": "images/icon_bluetooth_disconnected.png"
             },
             {
-                "type": "font",
-                "name": "FONT_TEST_34",
-                "file": "fonts/Roboto-Thin[1].ttf"
+                "type": "png",
+                "name": "IMAGE_BLUETOOTH_CONNECTED",
+                "file": "images/icon_bluetooth_connected.png"
             }
         ]
-    }
+    },
+    "shortName": "n3v3rs text one",
+    "appKeys": {},
+    "versionCode": 2,
+    "longName": "n3v3rs text one",
+    "watchapp": {
+        "watchface": true
+    },
+    "versionLabel": "2.0.0"
 }

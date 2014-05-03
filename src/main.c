@@ -1,19 +1,106 @@
 #include <pebble.h>
 
+//#define TOTAL_TEXT_LINES 2
+  
 static Window *window;
+//static TextLayer *text_line[TOTAL_TEXT_LINES];
+//Inverter Layer
+static InverterLayer *inv_layer;
+//Bluetooth
+static GBitmap *bluetooth_connected_image, *bluetooth_disconnected_image; //Bluetooth images
+static BitmapLayer *bluetooth_layer; //Bluetooth layer
+//Battery
+static uint8_t batteryPercent; //for calculating fill state
+static GBitmap *battery_image;
+static BitmapLayer *battery_image_layer; //battery icon
+static BitmapLayer *battery_fill_layer; //show fill status
+//Text Lines
 static TextLayer *minuteLayer_2longlines, *minuteLayer_3longlines, *minuteLayer_2biglines; // The Minutes
 static TextLayer *hourLayer; // The hours
 
-static GBitmap *bluetooth_connected_image, *bluetooth_disconnected_image; //Bluetooth images
-static BitmapLayer *bluetooth_layer; //Bluetooth layer
+//Set key ID´s
+enum {
+  KEY_INVERTED = 0,
+  KEY_BLUETOOTH = 1,
+  KEY_VIBE = 2,
+  KEY_BATT_IMG = 3
+};
 
-static void toggle_bluetooth_icon(bool connected) { // Toggle bluetooth
-  if(!connected) {
-    bitmap_layer_set_bitmap(bluetooth_layer, bluetooth_disconnected_image);
-    vibes_long_pulse();
+//Default key values
+static bool key_indicator_inverted = false; //true = white background
+static bool key_indicator_bluetooth = true; //true = bluetooth icon on
+static bool key_indicator_vibe = true; //true = vibe on bluetooth disconnect
+static bool key_indicator_batt_img = true; //true = show batt usage image
+
+//######## Custom Functions ########
+
+//Battery - set image if charging, or set empty battery image if not charging
+void change_battery_icon(bool charging) {
+  gbitmap_destroy(battery_image);
+  if(charging) {
+    battery_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BATTERY_CHARGE);
   }
   else {
+    battery_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BATTERY);
+  }  
+  bitmap_layer_set_bitmap(battery_image_layer, battery_image);
+  layer_mark_dirty(bitmap_layer_get_layer(battery_image_layer));
+}
+
+//Update battery icon or hide it
+static void update_battery(BatteryChargeState charge_state) {
+  if (key_indicator_batt_img) {
+    batteryPercent = charge_state.charge_percent;
+    layer_set_hidden(bitmap_layer_get_layer(battery_image_layer), !key_indicator_batt_img);
+    if(batteryPercent==100 && key_indicator_batt_img) {
+      change_battery_icon(false);
+      layer_set_hidden(bitmap_layer_get_layer(battery_fill_layer), false);
+    }
+    layer_set_hidden(bitmap_layer_get_layer(battery_fill_layer), charge_state.is_charging);
+    change_battery_icon(charge_state.is_charging);
+  }
+  else {
+    layer_set_hidden(bitmap_layer_get_layer(battery_fill_layer), !key_indicator_batt_img);
+    layer_set_hidden(bitmap_layer_get_layer(battery_image_layer), !key_indicator_batt_img);
+  }
+}
+
+//draw the remaining battery percentage
+void battery_layer_update_callback(Layer *me, GContext* ctx) {
+  graphics_context_set_stroke_color(ctx, GColorWhite);
+  graphics_context_set_fill_color(ctx, GColorWhite);
+  graphics_fill_rect(ctx, GRect(2, 2, ((batteryPercent/100.0)*11.0), 5), 0, GCornerNone);
+}
+
+static void load_battery_layers() {
+  battery_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BATTERY);
+  GRect battery_frame = (GRect) {
+    .origin = { .x = 3, .y = 2 },
+    .size = battery_image->bounds.size
+  };
+  battery_fill_layer = bitmap_layer_create(battery_frame);
+  battery_image_layer = bitmap_layer_create(battery_frame);
+  bitmap_layer_set_bitmap(battery_image_layer, battery_image);
+  layer_set_update_proc(bitmap_layer_get_layer(battery_fill_layer), battery_layer_update_callback);
+	
+  layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(battery_image_layer));
+  layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(battery_fill_layer));
+  if (key_indicator_batt_img) {
+    battery_state_service_subscribe(&update_battery);
+  }
+  update_battery(battery_state_service_peek());
+}
+
+//Bluetooth
+static void toggle_bluetooth_icon(bool connected) { // Toggle bluetooth
+  if (connected) {
     bitmap_layer_set_bitmap(bluetooth_layer, bluetooth_connected_image);
+  }
+  else {
+    bitmap_layer_set_bitmap(bluetooth_layer, bluetooth_disconnected_image);
+  }
+  if (!connected && key_indicator_vibe) {
+    vibes_long_pulse();
   }
 }
 
@@ -21,7 +108,7 @@ void bluetooth_connection_callback(bool connected) {  //Bluetooth handler
   toggle_bluetooth_icon(connected);
 }
 
-static void init_bluetooth_layers() {
+static void load_bluetooth_layers() {
   bluetooth_connected_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BLUETOOTH_CONNECTED);
   bluetooth_disconnected_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BLUETOOTH_DISCONNECTED);
   GRect bluetooth_frame = (GRect) {
@@ -29,91 +116,158 @@ static void init_bluetooth_layers() {
     .size = bluetooth_connected_image->bounds.size
   };
   bluetooth_layer = bitmap_layer_create(bluetooth_frame);
-  toggle_bluetooth_icon(bluetooth_connection_service_peek());
   layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(bluetooth_layer));
+  if (key_indicator_bluetooth) {
+    bluetooth_connection_service_subscribe(bluetooth_connection_callback);
+    bluetooth_connection_callback(bluetooth_connection_service_peek());
+    layer_set_hidden(bitmap_layer_get_layer(bluetooth_layer), false);
+  }
+  else {
+    layer_set_hidden(bitmap_layer_get_layer(bluetooth_layer), true);
+  }
 }
 
-static void init_text_layers() {
-  
+//If a Key is changing, do following:
+void process_tuple(Tuple *t) {
+  switch(t->key) {
+    //Inverter Layer
+    case KEY_INVERTED: {
+      key_indicator_inverted = !strcmp(t->value->cstring,"on"); // easiest way to convert a on/off string into a boolean
+      layer_set_hidden(inverter_layer_get_layer(inv_layer), !key_indicator_inverted);
+      break;
+    }
+    case KEY_BLUETOOTH: {
+		  key_indicator_bluetooth = !strcmp(t->value->cstring,"on");
+      layer_set_hidden(bitmap_layer_get_layer(bluetooth_layer), !key_indicator_bluetooth);
+      if (key_indicator_bluetooth) {
+        bluetooth_connection_service_subscribe(bluetooth_connection_callback);
+        bluetooth_connection_callback(bluetooth_connection_service_peek());
+      }
+      else {
+        bluetooth_connection_service_unsubscribe();
+      }
+      break;
+    }
+    case KEY_VIBE: {
+		  key_indicator_vibe = !strcmp(t->value->cstring,"on");
+      break;
+    }
+    case KEY_BATT_IMG: {
+		  key_indicator_batt_img = !strcmp(t->value->cstring,"on");
+      update_battery(battery_state_service_peek());
+      
+      if (key_indicator_batt_img) {
+        battery_state_service_subscribe(&update_battery);
+      }
+      else {
+        battery_state_service_unsubscribe();
+      }
+      break;
+    }
+  }
+}
+
+//If a Key is changing, call process_tuple
+void in_received_handler(DictionaryIterator *iter, void *context) {
+	for(Tuple *t=dict_read_first(iter); t!=NULL; t=dict_read_next(iter)) process_tuple(t);
+}
+
+//Create Inverter Layer
+void load_inv_layer() {
+  inv_layer = inverter_layer_create((GRect) {.origin = {0, 0}, .size = {144, 168}});
+  layer_add_child(window_get_root_layer(window), inverter_layer_get_layer(inv_layer));
+  if (key_indicator_inverted) {
+    layer_set_hidden(inverter_layer_get_layer(inv_layer), false);
+  }
+  else {
+    layer_set_hidden(inverter_layer_get_layer(inv_layer), true);
+  }
+}
+
+/*//Load Text Lines
+void load_text_lines() {
+  for (int i = 1; i < TOTAL_TEXT_LINES; ++i) {
+    text_line[i] = text_layer_create((GRect) {.origin = {0, 0}, .size = {0, 0}});
+    text_layer_set_text_color(text_line[i], GColorWhite);
+    text_layer_set_background_color(text_line[i], GColorClear);
+    layer_add_child(window_get_root_layer(window), text_layer_get_layer(text_line[i]));
+    //layer_set_hidden(text_layer_get_layer(text_line[i]), true);
+  }
+}*/
+
+static void load_text_layers() {
   //Load Fonts
   GFont bitham = fonts_get_system_font(FONT_KEY_BITHAM_42_LIGHT);
   GFont bithamBold = fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD);
   ResHandle font_handle_three_lines = resource_get_handle(RESOURCE_ID_FONT_TEST_34);
-  //GFont font_handle_three_lines = fonts_get_system_font(FONT_KEY_GOTHIC_28);
   
   // Configure Minute Layers
-  minuteLayer_3longlines = text_layer_create((GRect) { .origin = {5, 8}, .size = {134, 154}});
+  minuteLayer_3longlines = text_layer_create((GRect) { .origin = {5, 10}, .size = {134, 154}});
   text_layer_set_text_color(minuteLayer_3longlines, GColorWhite);
   text_layer_set_background_color(minuteLayer_3longlines, GColorClear);
+  //text_layer_set_font(minuteLayer_3longlines, fonts_load_custom_font(font_handle_regular));
   text_layer_set_font(minuteLayer_3longlines, fonts_load_custom_font(font_handle_three_lines));
   layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
   
-  minuteLayer_2longlines = text_layer_create((GRect) { .origin = {5, 39}, .size = {134, 154}});
+  minuteLayer_2longlines = text_layer_create((GRect) { .origin = {5, 41}, .size = {134, 154}});
   text_layer_set_text_color(minuteLayer_2longlines, GColorWhite);
   text_layer_set_background_color(minuteLayer_2longlines, GColorClear);
+  //text_layer_set_font(minuteLayer_2longlines, fonts_load_custom_font(font_handle_regular));
   text_layer_set_font(minuteLayer_2longlines, fonts_load_custom_font(font_handle_three_lines));
   layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
   
-  minuteLayer_2biglines = text_layer_create((GRect) {.origin = {5, 21}, .size = {134, 154}});
+  minuteLayer_2biglines = text_layer_create((GRect) {.origin = {5, 23}, .size = {134, 154}});
   text_layer_set_text_color(minuteLayer_2biglines, GColorWhite);
   text_layer_set_background_color(minuteLayer_2biglines, GColorClear);
+  //text_layer_set_font(minuteLayer_2biglines, fonts_load_custom_font(font_handle_regular));
   text_layer_set_font(minuteLayer_2biglines, bitham);
   layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
   
   // Configure Hour Layer
-  hourLayer = text_layer_create((GRect) { .origin = {5, 107}, .size = {134, 154}});
+  hourLayer = text_layer_create((GRect) { .origin = {5, 109}, .size = {134, 154}});
   text_layer_set_text_color(hourLayer, GColorWhite);
   text_layer_set_background_color(hourLayer, GColorClear);
+  //text_layer_set_font(hourLayer, fonts_load_custom_font(font_handle_bold));
   text_layer_set_font(hourLayer, bithamBold);
+  
+  layer_add_child(window_get_root_layer(window), text_layer_get_layer(minuteLayer_3longlines));
+  layer_add_child(window_get_root_layer(window), text_layer_get_layer(minuteLayer_2longlines));
+  layer_add_child(window_get_root_layer(window), text_layer_get_layer(minuteLayer_2biglines));
+  layer_add_child(window_get_root_layer(window), text_layer_get_layer(hourLayer));
 }
 
-static void window_load(Window *window) {
-  Layer *window_layer = window_get_root_layer(window);
-  init_text_layers();
-  layer_add_child(window_layer, text_layer_get_layer(minuteLayer_3longlines));
-  layer_add_child(window_layer, text_layer_get_layer(minuteLayer_2longlines));
-  layer_add_child(window_layer, text_layer_get_layer(minuteLayer_2biglines));
-  layer_add_child(window_layer, text_layer_get_layer(hourLayer));
-}
-
-static void window_unload(Window *window) {
-  text_layer_destroy(minuteLayer_3longlines);
-  text_layer_destroy(minuteLayer_2longlines);
-  text_layer_destroy(minuteLayer_2biglines);
-  text_layer_destroy(hourLayer);
-}
-
+//Display Time
 static void display_time(struct tm *time) {
-
+  //Hour Text
   const char *hour_string[25] = { "zwölf", "eins","zwei", "drei", "vier", "fünf", "sechs",
 	  "sieben", "acht", "neun", "zehn", "elf", "zwölf", "eins", "zwei", "drei", "vier",
     "fünf", "sechs", "sieben", "acht", "neun", "zehn", "elf" , "zwölf"};
-  
-  //Minutenweise probleme ab dreizehn
+  //Minute Text
   const char *minute_string[] = {
-    "\npunkt", "eins \nnach", "zwei \nnach", "drei \nnach", "vier \nnach", "fünf \nnach",
-    "sechs \nnach", "sieben \nnach", "acht \nnach", "neun \nnach", "zehn \nnach",
-    "elf \nnach", "zwölf \nnach", "dreizehn nach", "vierzehn nach", "viertel nach",
+    "\npunkt", "eins\nnach", "zwei\nnach", "drei\nnach", "vier\nnach", "fünf\nnach",
+    "sechs\nnach", "sieben\nnach", "acht\nnach", "neun\nnach", "zehn\nnach",
+    "elf\nnach", "zwölf\nnach", "dreizehn nach", "vierzehn nach", "viertel nach",
     "sech-\nzehn nach", "sieb-\nzehn nach", "acht-\nzehn nach", "neun-\nzehn nach", "zehn vor halb",
     "neun vor halb", "acht vor halb", "sieben vor halb", "sechs vor halb", "fünf vor halb",
     "vier vor halb", "drei vor halb", "zwei vor halb", "eins vor halb", "\nhalb",
     "eins nach halb", "zwei nach halb", "drei nach halb", "vier\nnach halb", "fünf nach halb",
     "sechs nach halb", "sieben nach halb", "acht nach halb", "neun nach halb", "zwanzig vor",
-    "elf nach halb", "zwölf nach halb", "dreizehn nach halb", "vierzehn nach halb", "\ndrei-\nviertel",
-    "vierzehn \nvor", "dreizehn \nvor", "zwölf \nvor", "elf \nvor", "zehn \nvor",
-    "neun \nvor", "acht \nvor", "sieben \nvor", "sechs \nvor", "fünf \nvor",
-    "vier \nvor", "drei \nvor", "zwei \nvor", "eins \nvor"
+    "neun-\nzehn\nvor", "acht-\nzehn\nvor", "sieb-\nzehn\nvor", "sech-\nzehn\nvor", "\ndrei-\nviertel",
+    "vierzehn\nvor", "dreizehn\nvor", "zwölf\nvor", "elf\nvor", "zehn\nvor",
+    "neun\nvor", "acht\nvor", "sieben\nvor", "sechs\nvor", "fünf\nvor",
+    "vier\nvor", "drei\nvor", "zwei\nvor", "eins\nvor"
   };
 
-  // Set Time for DEBUG
-  //int hour = 8;
-  //int min = 37;
-  
+  //Set Time for DEBUG
+  //int hour = 7;
+  //int min = 41;
+
   // Set Time
   int hour = time->tm_hour;
   int min = time->tm_min;
-  
-  
+  //DEBUG with second unit
+  //int min = time->tm_sec;
+
   char minute_text[50];
   char hour_text[50];
   
@@ -216,34 +370,81 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
   display_time(tick_time);
 }
 
+//######## Generic Functions ########
+
+static void window_load(Window *window) {
+  Layer *window_layer = window_get_root_layer(window);
+
+  //Key
+  app_message_register_inbox_received(in_received_handler); //register key receiving
+	app_message_open(512, 512); //Key buffer in- and outbound
+  
+  //Load value from storage, if storage is empty load default value
+  key_indicator_inverted = persist_exists(KEY_INVERTED) ? persist_read_bool(KEY_INVERTED) : key_indicator_inverted;
+  key_indicator_bluetooth = persist_exists(KEY_BLUETOOTH) ? persist_read_bool(KEY_BLUETOOTH) : key_indicator_bluetooth;
+  key_indicator_vibe = persist_exists(KEY_VIBE) ? persist_read_bool(KEY_VIBE) : key_indicator_vibe;
+  key_indicator_batt_img = persist_exists(KEY_BATT_IMG) ? persist_read_bool(KEY_BATT_IMG) : key_indicator_batt_img;
+  
+  //Load Time and Text lines
+  time_t now = time(NULL);
+  struct tm *tick_time = localtime(&now);
+  //load_text_lines();
+  load_text_layers();
+  display_time(tick_time);
+  tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
+  //DEBUG Seconds
+  //tick_timer_service_subscribe(SECOND_UNIT, handle_minute_tick);
+  
+  load_battery_layers();
+  load_bluetooth_layers();
+  load_inv_layer();
+}
+
+static void window_unload(Window *window) {
+  /*for (int i = 1; i < TOTAL_TEXT_LINES; ++i) {
+    text_layer_destroy(text_line[i]);
+  }*/
+  inverter_layer_destroy(inv_layer);
+  text_layer_destroy(minuteLayer_3longlines);
+  text_layer_destroy(minuteLayer_2longlines);
+  text_layer_destroy(minuteLayer_2biglines);
+  text_layer_destroy(hourLayer);
+}
+
 static void init(void) {
   window = window_create();
+  window_set_background_color(window, GColorBlack);
   window_set_window_handlers(window, (WindowHandlers) {
     .load = window_load,
     .unload = window_unload,
   });
-  const bool animated = true;
-  window_stack_push(window, animated);
-  window_set_background_color(window, GColorBlack);
-  
-  time_t now = time(NULL);
-  struct tm *tick_time = localtime(&now);
-  display_time(tick_time);
-  init_bluetooth_layers();
-  
-  tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
-  bluetooth_connection_service_subscribe(bluetooth_connection_callback);
+  window_stack_push(window, true); //Push to Display
 }
 
 static void deinit(void) {
+  window_destroy(window);
+  tick_timer_service_unsubscribe();
+  
+  //Bluetooth
   bluetooth_connection_service_unsubscribe();
   layer_remove_from_parent(bitmap_layer_get_layer(bluetooth_layer));
   bitmap_layer_destroy(bluetooth_layer);
   gbitmap_destroy(bluetooth_connected_image);
   gbitmap_destroy(bluetooth_disconnected_image);
   
-  window_destroy(window);
-  tick_timer_service_unsubscribe();
+  //Battery
+  battery_state_service_unsubscribe();
+  layer_remove_from_parent(bitmap_layer_get_layer(battery_fill_layer));
+  bitmap_layer_destroy(battery_fill_layer);
+  gbitmap_destroy(battery_image);
+  layer_remove_from_parent(bitmap_layer_get_layer(battery_image_layer));
+  bitmap_layer_destroy(battery_image_layer);
+    
+  //Save key´s to persistent storage
+  persist_write_bool(KEY_INVERTED, key_indicator_inverted);
+  persist_write_bool(KEY_BLUETOOTH, key_indicator_bluetooth);
+  persist_write_bool(KEY_VIBE, key_indicator_vibe);
+  persist_write_bool(KEY_BATT_IMG, key_indicator_batt_img);
 }
 
 int main(void) {

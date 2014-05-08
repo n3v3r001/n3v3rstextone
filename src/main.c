@@ -15,7 +15,7 @@ static GBitmap *battery_image;
 static BitmapLayer *battery_image_layer; //battery icon
 static BitmapLayer *battery_fill_layer; //show fill status
 //Text Lines
-static TextLayer *minuteLayer_2longlines, *minuteLayer_3longlines, *minuteLayer_2biglines; // The Minutes
+static TextLayer *minuteLayer_2longlines, *minuteLayer_3lines, *minuteLayer_2biglines; // The Minutes
 static TextLayer *hourLayer; // The hours
 
 //Set key ID´s
@@ -39,8 +39,7 @@ void change_battery_icon(bool charging) {
   gbitmap_destroy(battery_image);
   if(charging) {
     battery_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BATTERY_CHARGE);
-  }
-  else {
+  } else {
     battery_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BATTERY);
   }  
   bitmap_layer_set_bitmap(battery_image_layer, battery_image);
@@ -58,8 +57,7 @@ static void update_battery(BatteryChargeState charge_state) {
     }
     layer_set_hidden(bitmap_layer_get_layer(battery_fill_layer), charge_state.is_charging);
     change_battery_icon(charge_state.is_charging);
-  }
-  else {
+  } else {
     layer_set_hidden(bitmap_layer_get_layer(battery_fill_layer), !key_indicator_batt_img);
     layer_set_hidden(bitmap_layer_get_layer(battery_image_layer), !key_indicator_batt_img);
   }
@@ -95,8 +93,7 @@ static void load_battery_layers() {
 static void toggle_bluetooth_icon(bool connected) { // Toggle bluetooth
   if (connected) {
     bitmap_layer_set_bitmap(bluetooth_layer, bluetooth_connected_image);
-  }
-  else {
+  } else {
     bitmap_layer_set_bitmap(bluetooth_layer, bluetooth_disconnected_image);
   }
   if (!connected && key_indicator_vibe) {
@@ -121,8 +118,7 @@ static void load_bluetooth_layers() {
     bluetooth_connection_service_subscribe(bluetooth_connection_callback);
     bluetooth_connection_callback(bluetooth_connection_service_peek());
     layer_set_hidden(bitmap_layer_get_layer(bluetooth_layer), false);
-  }
-  else {
+  } else {
     layer_set_hidden(bitmap_layer_get_layer(bluetooth_layer), true);
   }
 }
@@ -142,8 +138,7 @@ void process_tuple(Tuple *t) {
       if (key_indicator_bluetooth) {
         bluetooth_connection_service_subscribe(bluetooth_connection_callback);
         bluetooth_connection_callback(bluetooth_connection_service_peek());
-      }
-      else {
+      } else {
         bluetooth_connection_service_unsubscribe();
       }
       break;
@@ -199,40 +194,34 @@ static void load_text_layers() {
   //Load Fonts
   GFont bitham = fonts_get_system_font(FONT_KEY_BITHAM_42_LIGHT);
   GFont bithamBold = fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD);
-  ResHandle font_handle_three_lines = resource_get_handle(RESOURCE_ID_FONT_TEST_34);
-  
+  //ResHandle font_handle_three_lines = resource_get_handle(RESOURCE_ID_FONT_TEST_34);
+  ResHandle robotoLight = resource_get_handle(RESOURCE_ID_FONT_ROBOTO_LIGHT_34);
+  ResHandle robotoReg = resource_get_handle(RESOURCE_ID_FONT_ROBOTO_REG_34);
+    
   // Configure Minute Layers
-  minuteLayer_3longlines = text_layer_create((GRect) { .origin = {5, 10}, .size = {134, 154}});
-  text_layer_set_text_color(minuteLayer_3longlines, GColorWhite);
-  text_layer_set_background_color(minuteLayer_3longlines, GColorClear);
-  //text_layer_set_font(minuteLayer_3longlines, fonts_load_custom_font(font_handle_regular));
-  text_layer_set_font(minuteLayer_3longlines, fonts_load_custom_font(font_handle_three_lines));
-  layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
+  minuteLayer_3lines = text_layer_create((GRect) { .origin = {0, 10}, .size = {144, 168-10}});
+  text_layer_set_text_color(minuteLayer_3lines, GColorWhite);
+  text_layer_set_background_color(minuteLayer_3lines, GColorClear);
+  text_layer_set_font(minuteLayer_3lines, fonts_load_custom_font(robotoLight));
+  layer_add_child(window_get_root_layer(window), text_layer_get_layer(minuteLayer_3lines));
   
-  minuteLayer_2longlines = text_layer_create((GRect) { .origin = {5, 41}, .size = {134, 154}});
+  minuteLayer_2longlines = text_layer_create((GRect) { .origin = {0, 44}, .size = {144, 168-44}});
   text_layer_set_text_color(minuteLayer_2longlines, GColorWhite);
   text_layer_set_background_color(minuteLayer_2longlines, GColorClear);
-  //text_layer_set_font(minuteLayer_2longlines, fonts_load_custom_font(font_handle_regular));
-  text_layer_set_font(minuteLayer_2longlines, fonts_load_custom_font(font_handle_three_lines));
-  layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
+  text_layer_set_font(minuteLayer_2longlines, fonts_load_custom_font(robotoLight));
+  layer_add_child(window_get_root_layer(window), text_layer_get_layer(minuteLayer_2longlines));
   
-  minuteLayer_2biglines = text_layer_create((GRect) {.origin = {5, 23}, .size = {134, 154}});
+  minuteLayer_2biglines = text_layer_create((GRect) {.origin = {0, 23}, .size = {144, 168-23}});
   text_layer_set_text_color(minuteLayer_2biglines, GColorWhite);
   text_layer_set_background_color(minuteLayer_2biglines, GColorClear);
-  //text_layer_set_font(minuteLayer_2biglines, fonts_load_custom_font(font_handle_regular));
   text_layer_set_font(minuteLayer_2biglines, bitham);
-  layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
+  layer_add_child(window_get_root_layer(window), text_layer_get_layer(minuteLayer_2biglines));
   
   // Configure Hour Layer
-  hourLayer = text_layer_create((GRect) { .origin = {5, 109}, .size = {134, 154}});
+  hourLayer = text_layer_create((GRect) { .origin = {0, 109}, .size = {144, 168-109}});
   text_layer_set_text_color(hourLayer, GColorWhite);
   text_layer_set_background_color(hourLayer, GColorClear);
-  //text_layer_set_font(hourLayer, fonts_load_custom_font(font_handle_bold));
   text_layer_set_font(hourLayer, bithamBold);
-  
-  layer_add_child(window_get_root_layer(window), text_layer_get_layer(minuteLayer_3longlines));
-  layer_add_child(window_get_root_layer(window), text_layer_get_layer(minuteLayer_2longlines));
-  layer_add_child(window_get_root_layer(window), text_layer_get_layer(minuteLayer_2biglines));
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(hourLayer));
 }
 
@@ -247,20 +236,20 @@ static void display_time(struct tm *time) {
     "\npunkt", "eins\nnach", "zwei\nnach", "drei\nnach", "vier\nnach", "fünf\nnach",
     "sechs\nnach", "sieben\nnach", "acht\nnach", "neun\nnach", "zehn\nnach",
     "elf\nnach", "zwölf\nnach", "dreizehn nach", "vierzehn nach", "viertel nach",
-    "sech-\nzehn nach", "sieb-\nzehn nach", "acht-\nzehn nach", "neun-\nzehn nach", "zehn vor halb",
-    "neun vor halb", "acht vor halb", "sieben vor halb", "sechs vor halb", "fünf vor halb",
-    "vier vor halb", "drei vor halb", "zwei vor halb", "eins vor halb", "\nhalb",
-    "eins nach halb", "zwei nach halb", "drei nach halb", "vier\nnach halb", "fünf nach halb",
-    "sechs nach halb", "sieben nach halb", "acht nach halb", "neun nach halb", "zwanzig vor",
-    "neun-\nzehn\nvor", "acht-\nzehn\nvor", "sieb-\nzehn\nvor", "sech-\nzehn\nvor", "\ndrei-\nviertel",
-    "vierzehn\nvor", "dreizehn\nvor", "zwölf\nvor", "elf\nvor", "zehn\nvor",
+    "sechzehn nach", "siebzehn nach", "achtzehn nach", "neunzehn nach", "zehn\nvor\nhalb",
+    "neun\nvor\nhalb", "acht\nvor\nhalb", "sieben\nvor\nhalb", "sechs\nvor\nhalb", "fünf\nvor\nhalb",
+    "vier\nvor\nhalb", "drei\nvor\nhalb", "zwei\nvor\nhalb", "eins\nvor\nhalb", "\nhalb",
+    "eins\nnach\nhalb", "zwei\nnach\nhalb", "drei\nnach\nhalb", "vier\nnach\nhalb", "fünf\nnach\nhalb",
+    "sechs\nnach\nhalb", "sieben\nnach\nhalb", "acht\nnach\nhalb", "neun\nnach\nhalb", "\nzwanzig vor",
+    "neunzehn vor", "achtzehn vor", "siebzehn vor", "sechzehn vor", "drei-\nviertel",
+    "vierzehn vor", "dreizehn vor", "zwölf\nvor", "elf\nvor", "zehn\nvor",
     "neun\nvor", "acht\nvor", "sieben\nvor", "sechs\nvor", "fünf\nvor",
     "vier\nvor", "drei\nvor", "zwei\nvor", "eins\nvor"
   };
 
   //Set Time for DEBUG
-  //int hour = 7;
-  //int min = 41;
+  //int hour = 12;
+  //int min = 15;
 
   // Set Time
   int hour = time->tm_hour;
@@ -271,94 +260,43 @@ static void display_time(struct tm *time) {
   char minute_text[50];
   char hour_text[50];
   
+  // Minute Text
+  strcpy(minute_text , minute_string[min]);
+  layer_set_hidden(text_layer_get_layer(minuteLayer_3lines), true);
+  layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
+  layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);  
+  
+  if ((20 <= min && min <= 29) ||
+      (31 <= min && min <= 40)) {
+        layer_set_hidden(text_layer_get_layer(minuteLayer_3lines), false);
+  } else if (min == 13 ||
+             min == 14 ||
+             (16 <= min && min <= 19) ||
+             (41 <= min && min <= 44) ||
+             min == 46 ||
+             min == 47) {
+      layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), false);
+  } else if ((0 <= min && min <= 12) ||
+             min == 15 ||
+             min == 30 ||
+             min == 45 ||
+             (48 <= min && min <= 60)) {
+      layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
+  }
+  
+  static char staticTimeText[50] = ""; // Needs to be static because it's used by the system later.
+  strcpy(staticTimeText , "");
+  strcat(staticTimeText , minute_text);
+  text_layer_set_text(minuteLayer_3lines, staticTimeText);
+  text_layer_set_text(minuteLayer_2longlines, staticTimeText);
+  text_layer_set_text(minuteLayer_2biglines, staticTimeText);
+  
   // Hour Text
   if (min < 20) {
     strcpy(hour_text , hour_string[hour]);
   } else {
   	strcpy(hour_text , hour_string[hour + 1]);
   }
-  
-  // Minute Text
-  if (0 <= min && min <= 12) {
-    strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
-  }
-  if (13 <= min && min <= 14) {
-    strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), false);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
-  }
-  if (min == 15) {
-    strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
-  }
-  if (16 <= min && min <= 19) {
-    strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), false);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
-  }
-  if (20 <= min && min <= 29) {
-    strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), false);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
-  }
-  if (min == 30) {
-    strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
-    //TODO: beides hoch rücken
-  }
-  if (31 <= min && min <= 39) {
-    strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), false);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
-  }
-  if (min == 40) {
-    strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), false);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
-  }
-  if (41 <= min && min <= 44) {
-    strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), false);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
-  }
-  if (min == 45) {
-    strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), false);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
-  }
-  if (46 <= min && min <= 47) {
-    strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), false);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), true);
-  }
-  if (48 <= min && min <= 60) {
-    strcpy(minute_text , minute_string[min]);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_3longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2longlines), true);
-    layer_set_hidden(text_layer_get_layer(minuteLayer_2biglines), false);
-  }
-  
-  static char staticTimeText[50] = ""; // Needs to be static because it's used by the system later.
-  strcpy(staticTimeText , "");
-  strcat(staticTimeText , minute_text);
-  text_layer_set_text(minuteLayer_3longlines, staticTimeText);
-  text_layer_set_text(minuteLayer_2longlines, staticTimeText);
-  text_layer_set_text(minuteLayer_2biglines, staticTimeText);
   
   static char staticHourText[50] = ""; // Needs to be static because it's used by the system later.
   strcpy(staticHourText , "");
@@ -390,10 +328,9 @@ static void window_load(Window *window) {
   struct tm *tick_time = localtime(&now);
   //load_text_lines();
   load_text_layers();
+  load_text_layers();
   display_time(tick_time);
   tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
-  //DEBUG Seconds
-  //tick_timer_service_subscribe(SECOND_UNIT, handle_minute_tick);
   
   load_battery_layers();
   load_bluetooth_layers();
@@ -405,7 +342,7 @@ static void window_unload(Window *window) {
     text_layer_destroy(text_line[i]);
   }*/
   inverter_layer_destroy(inv_layer);
-  text_layer_destroy(minuteLayer_3longlines);
+  text_layer_destroy(minuteLayer_3lines);
   text_layer_destroy(minuteLayer_2longlines);
   text_layer_destroy(minuteLayer_2biglines);
   text_layer_destroy(hourLayer);

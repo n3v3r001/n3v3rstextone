@@ -23,7 +23,9 @@ enum {
   KEY_INVERTED = 0,
   KEY_BLUETOOTH = 1,
   KEY_VIBE = 2,
-  KEY_BATT_IMG = 3
+  KEY_BATT_IMG = 3,
+  KEY_TEXT_NRW = 4,
+  KEY_TEXT_WIEN = 5
 };
 
 //Default key values
@@ -31,6 +33,8 @@ static bool key_indicator_inverted = false; //true = white background
 static bool key_indicator_bluetooth = true; //true = bluetooth icon on
 static bool key_indicator_vibe = true; //true = vibe on bluetooth disconnect
 static bool key_indicator_batt_img = true; //true = show batt usage image
+static bool key_indicator_text_nrw = false; //true = show batt usage image
+static bool key_indicator_text_wien = false; //true = show batt usage image
 
 //######## Custom Functions ########
 
@@ -159,6 +163,14 @@ void process_tuple(Tuple *t) {
       }
       break;
     }
+    case KEY_TEXT_NRW: {
+		  key_indicator_text_nrw = !strcmp(t->value->cstring,"on");
+      break;
+    }
+    case KEY_TEXT_WIEN: {
+		  key_indicator_text_wien = !strcmp(t->value->cstring,"on");
+      break;
+    }
   }
 }
 
@@ -194,9 +206,7 @@ static void load_text_layers() {
   //Load Fonts
   GFont bitham = fonts_get_system_font(FONT_KEY_BITHAM_42_LIGHT);
   GFont bithamBold = fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD);
-  //ResHandle font_handle_three_lines = resource_get_handle(RESOURCE_ID_FONT_TEST_34);
   ResHandle robotoLight = resource_get_handle(RESOURCE_ID_FONT_ROBOTO_LIGHT_34);
-  ResHandle robotoReg = resource_get_handle(RESOURCE_ID_FONT_ROBOTO_REG_34);
     
   // Configure Minute Layers
   minuteLayer_3lines = text_layer_create((GRect) { .origin = {0, 10}, .size = {144, 168-10}});
@@ -246,10 +256,13 @@ static void display_time(struct tm *time) {
     "neun\nvor", "acht\nvor", "sieben\nvor", "sechs\nvor", "fünf\nvor",
     "vier\nvor", "drei\nvor", "zwei\nvor", "eins\nvor"
   };
-
+  //Special Minute Texts
+  //char minute_text_viertelvor = "Viertel\nvor"; // Viertel vor 11 = 10:45, dreiviertel
+  //char minute_text_viertel = "Viertel"; // Viertel 11 = 10:15, viertel nach HINWEIS hier auch die Stunde nach vorne ziehen
+  
   //Set Time for DEBUG
-  //int hour = 12;
-  //int min = 15;
+  //int hour = 10;
+  //int min = 47;
 
   // Set Time
   int hour = time->tm_hour;
@@ -287,13 +300,26 @@ static void display_time(struct tm *time) {
   static char staticTimeText[50] = ""; // Needs to be static because it's used by the system later.
   strcpy(staticTimeText , "");
   strcat(staticTimeText , minute_text);
+  
+  //Override with Special minute texts
+  if (key_indicator_text_nrw && min == 45) {
+    strcpy(staticTimeText , "viertel vor");
+  }
+  if (key_indicator_text_wien && min == 15) {
+    strcpy(staticTimeText , "\nviertel"); //HINT: also update hour +1!
+  }
+  
   text_layer_set_text(minuteLayer_3lines, staticTimeText);
   text_layer_set_text(minuteLayer_2longlines, staticTimeText);
   text_layer_set_text(minuteLayer_2biglines, staticTimeText);
   
   // Hour Text
   if (min < 20) {
-    strcpy(hour_text , hour_string[hour]);
+    if (min == 15 && key_indicator_text_wien) { //Override with Special minute texts
+      strcpy(hour_text , hour_string[hour + 1]);
+    } else {
+      strcpy(hour_text , hour_string[hour]);
+    }
   } else {
   	strcpy(hour_text , hour_string[hour + 1]);
   }
@@ -322,6 +348,8 @@ static void window_load(Window *window) {
   key_indicator_bluetooth = persist_exists(KEY_BLUETOOTH) ? persist_read_bool(KEY_BLUETOOTH) : key_indicator_bluetooth;
   key_indicator_vibe = persist_exists(KEY_VIBE) ? persist_read_bool(KEY_VIBE) : key_indicator_vibe;
   key_indicator_batt_img = persist_exists(KEY_BATT_IMG) ? persist_read_bool(KEY_BATT_IMG) : key_indicator_batt_img;
+  key_indicator_text_nrw = persist_exists(KEY_TEXT_NRW) ? persist_read_bool(KEY_TEXT_NRW) : key_indicator_text_nrw;
+  key_indicator_text_wien = persist_exists(KEY_TEXT_WIEN) ? persist_read_bool(KEY_TEXT_WIEN) : key_indicator_text_wien;
   
   //Load Time and Text lines
   time_t now = time(NULL);
@@ -382,6 +410,8 @@ static void deinit(void) {
   persist_write_bool(KEY_BLUETOOTH, key_indicator_bluetooth);
   persist_write_bool(KEY_VIBE, key_indicator_vibe);
   persist_write_bool(KEY_BATT_IMG, key_indicator_batt_img);
+  persist_write_bool(KEY_TEXT_NRW, key_indicator_text_nrw);
+  persist_write_bool(KEY_TEXT_WIEN, key_indicator_text_wien);
 }
 
 int main(void) {

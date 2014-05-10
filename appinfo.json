@@ -1,53 +1,46 @@
 {
-    "uuid": "5a301614-84e4-42cc-b8ba-0e47da96f72b",
+    "appKeys": {},
     "resources": {
         "media": [
             {
+                "trackingAdjust": -1,
                 "name": "FONT_ROBOTO_LIGHT_34",
-                "type": "font",
-                "trackingAdjust": -1,
+                "file": "fonts/Roboto-Light.ttf",
                 "characterRegex": "[a-z\u00e4\u00f6\u00fc ]",
-                "file": "fonts/Roboto-Light.ttf"
-            },
-            {
-                "name": "FONT_ROBOTO_REG_34",
-                "type": "font",
-                "trackingAdjust": -1,
-                "characterRegex": "[a-z\u00e4\u00f6\u00fc ]",
-                "file": "fonts/Roboto-Regular.ttf"
+                "type": "font"
             },
             {
                 "name": "IMAGE_BATTERY",
-                "type": "png",
-                "file": "images/icon_battery.png"
+                "file": "images/icon_battery.png",
+                "type": "png"
             },
             {
                 "name": "IMAGE_BATTERY_CHARGE",
-                "type": "png",
-                "file": "images/icon_battery_charge.png"
+                "file": "images/icon_battery_charge.png",
+                "type": "png"
             },
             {
                 "name": "IMAGE_BLUETOOTH_DISCONNECTED",
-                "type": "png",
-                "file": "images/icon_bluetooth_disconnected.png"
+                "file": "images/icon_bluetooth_disconnected.png",
+                "type": "png"
             },
             {
                 "name": "IMAGE_BLUETOOTH_CONNECTED",
-                "type": "png",
-                "file": "images/icon_bluetooth_connected.png"
+                "file": "images/icon_bluetooth_connected.png",
+                "type": "png"
             }
         ]
     },
-    "capabilities": [
-        "configurable"
-    ],
-    "companyName": "gattringerm@gmail.com",
-    "shortName": "n3v3rs text one",
-    "longName": "n3v3rs text one",
     "watchapp": {
         "watchface": true
     },
+    "shortName": "n3v3rs text one",
+    "versionLabel": "2.0.3",
     "versionCode": 2,
-    "appKeys": {},
-    "versionLabel": "2.0.2"
+    "companyName": "gattringerm@gmail.com",
+    "uuid": "5a301614-84e4-42cc-b8ba-0e47da96f72b",
+    "capabilities": [
+        "configurable"
+    ],
+    "longName": "n3v3rs text one"
 }

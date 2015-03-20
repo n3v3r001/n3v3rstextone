@@ -10,7 +10,7 @@ Pebble.addEventListener("showConfiguration", function(){
   console.log("URL: creating configuration URL");
 
   //default URL
-  var url = 'http://n3v3r001.at/pebble/configs/n3v3rs_text_one_dev.html?';
+  var url = 'http://n3v3r001.at/pebble/configs/n3v3rs_text_one.html?';
 
   //starting with first key
   var firstKey = true; 

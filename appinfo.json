@@ -1,46 +1,54 @@
 {
     "appKeys": {},
+    "capabilities": [
+        "configurable"
+    ],
+    "companyName": "Mario Gattringer",
+    "longName": "n3v3rs text one",
+    "projectType": "native",
     "resources": {
         "media": [
             {
-                "trackingAdjust": -1,
-                "name": "FONT_ROBOTO_LIGHT_34",
-                "file": "fonts/Roboto-Light.ttf",
+                "file": "images/icon_battery_eco.png",
+                "name": "IMAGE_BATTERY_ECO",
+                "type": "png"
+            },
+            {
                 "characterRegex": "[a-z\u00e4\u00f6\u00fc ]",
+                "compatibility": "2.7",
+                "file": "fonts/Roboto-Light.ttf",
+                "name": "FONT_ROBOTO_LIGHT_34",
+                "trackingAdjust": -1,
                 "type": "font"
             },
             {
-                "name": "IMAGE_BATTERY",
                 "file": "images/icon_battery.png",
+                "name": "IMAGE_BATTERY",
                 "type": "png"
             },
             {
-                "name": "IMAGE_BATTERY_CHARGE",
                 "file": "images/icon_battery_charge.png",
+                "name": "IMAGE_BATTERY_CHARGE",
                 "type": "png"
             },
             {
-                "name": "IMAGE_BLUETOOTH_DISCONNECTED",
                 "file": "images/icon_bluetooth_disconnected.png",
+                "name": "IMAGE_BLUETOOTH_DISCONNECTED",
                 "type": "png"
             },
             {
-                "name": "IMAGE_BLUETOOTH_CONNECTED",
                 "file": "images/icon_bluetooth_connected.png",
+                "name": "IMAGE_BLUETOOTH_CONNECTED",
                 "type": "png"
             }
         ]
     },
+    "sdkVersion": "2",
+    "shortName": "n3v3rs text one",
+    "uuid": "5a301614-84e4-42cc-b8ba-0e47da96f72b",
+    "versionCode": 2,
+    "versionLabel": "3.0",
     "watchapp": {
         "watchface": true
-    },
-    "shortName": "n3v3rs text one",
-    "versionLabel": "2.0.3",
-    "versionCode": 2,
-    "companyName": "gattringerm@gmail.com",
-    "uuid": "5a301614-84e4-42cc-b8ba-0e47da96f72b",
-    "capabilities": [
-        "configurable"
-    ],
-    "longName": "n3v3rs text one"
+    }
 }

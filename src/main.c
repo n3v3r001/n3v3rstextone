@@ -1,9 +1,9 @@
 #include <pebble.h>
 
-//#define TOTAL_TEXT_LINES 2
-  
+//Language ID
+//static int langId = 0; //0=de, 1=en, 2=french
+//Window
 static Window *window;
-//static TextLayer *text_line[TOTAL_TEXT_LINES];
 //Inverter Layer
 static InverterLayer *inv_layer;
 //Bluetooth
@@ -12,11 +12,9 @@ static BitmapLayer *bluetooth_layer; //Bluetooth layer
 //Battery
 static uint8_t batteryPercent; //for calculating fill state
 static GBitmap *battery_image;
-static BitmapLayer *battery_image_layer; //battery icon
-static BitmapLayer *battery_fill_layer; //show fill status
+static BitmapLayer *battery_image_layer, *battery_fill_layer; //battery icon, show fill status
 //Text Lines
-static TextLayer *minuteLayer_2longlines, *minuteLayer_3lines, *minuteLayer_2biglines; // The Minutes
-static TextLayer *hourLayer; // The hours
+static TextLayer *minuteLayer_2longlines, *minuteLayer_3lines, *minuteLayer_2biglines, *hourLayer, *dateLayer;
 
 //Set key ID´s
 enum {
@@ -25,7 +23,8 @@ enum {
   KEY_VIBE = 2,
   KEY_BATT_IMG = 3,
   KEY_TEXT_NRW = 4,
-  KEY_TEXT_WIEN = 5
+  KEY_TEXT_WIEN = 5,
+  KEY_DATE = 6
 };
 
 //Default key values
@@ -35,8 +34,22 @@ static bool key_indicator_vibe = true; //true = vibe on bluetooth disconnect
 static bool key_indicator_batt_img = true; //true = show batt usage image
 static bool key_indicator_text_nrw = false; //true = show batt usage image
 static bool key_indicator_text_wien = false; //true = show batt usage image
+static bool key_indicator_date = true; //true = show date
 
-//######## Custom Functions ########
+/*
+//day names
+static const char *wday_names[][7] = {
+  {"So","Mo","Di","Mi","Do","Fr","Sa"}, //DE
+  {"Su","Mo","Tu","We","Th","Fr","Sa"}, //EN
+  {"Di","Lu","Ma","Me","Je","Ve","Sa"} //French
+};
+*/
+
+/*
+  ##################################
+  ######## Custom Functions ########
+  ##################################
+*/
 
 //Battery - set image if charging, or set empty battery image if not charging
 void change_battery_icon(bool charging) {
@@ -171,41 +184,35 @@ void process_tuple(Tuple *t) {
 		  key_indicator_text_wien = !strcmp(t->value->cstring,"on");
       break;
     }
+    case KEY_DATE: {
+      key_indicator_date = !strcmp(t->value->cstring,"on");
+      layer_set_hidden(text_layer_get_layer(dateLayer), !key_indicator_date);
+      break;
+    }
   }
 }
 
 //If a Key is changing, call process_tuple
 void in_received_handler(DictionaryIterator *iter, void *context) {
-	for(Tuple *t=dict_read_first(iter); t!=NULL; t=dict_read_next(iter)) process_tuple(t);
+	for(Tuple *t=dict_read_first(iter); t!=NULL; t=dict_read_next(iter))
+    process_tuple(t);
 }
 
 //Create Inverter Layer
 void load_inv_layer() {
   inv_layer = inverter_layer_create((GRect) {.origin = {0, 0}, .size = {144, 168}});
   layer_add_child(window_get_root_layer(window), inverter_layer_get_layer(inv_layer));
-  if (key_indicator_inverted) {
+  if (key_indicator_inverted)
     layer_set_hidden(inverter_layer_get_layer(inv_layer), false);
-  }
-  else {
+  else
     layer_set_hidden(inverter_layer_get_layer(inv_layer), true);
-  }
 }
-
-/*//Load Text Lines
-void load_text_lines() {
-  for (int i = 1; i < TOTAL_TEXT_LINES; ++i) {
-    text_line[i] = text_layer_create((GRect) {.origin = {0, 0}, .size = {0, 0}});
-    text_layer_set_text_color(text_line[i], GColorWhite);
-    text_layer_set_background_color(text_line[i], GColorClear);
-    layer_add_child(window_get_root_layer(window), text_layer_get_layer(text_line[i]));
-    //layer_set_hidden(text_layer_get_layer(text_line[i]), true);
-  }
-}*/
 
 static void load_text_layers() {
   //Load Fonts
   GFont bitham = fonts_get_system_font(FONT_KEY_BITHAM_42_LIGHT);
   GFont bithamBold = fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD);
+  GFont dateFont = fonts_get_system_font(FONT_KEY_GOTHIC_18);
   ResHandle robotoLight = resource_get_handle(RESOURCE_ID_FONT_ROBOTO_LIGHT_34);
     
   // Configure Minute Layers
@@ -233,15 +240,24 @@ static void load_text_layers() {
   text_layer_set_background_color(hourLayer, GColorClear);
   text_layer_set_font(hourLayer, bithamBold);
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(hourLayer));
+  
+  // Configure DateLayer
+  //dateLayer = text_layer_create((GRect) { .origin = {45, -7}, .size = {144-40, 168}});
+  dateLayer = text_layer_create((GRect) { .origin = {57, -7}, .size = {144-40, 168}});
+  text_layer_set_text_color(dateLayer, GColorWhite);
+  text_layer_set_background_color(dateLayer, GColorClear);
+  text_layer_set_font(dateLayer, dateFont);
+  layer_add_child(window_get_root_layer(window), text_layer_get_layer(dateLayer));
+  layer_set_hidden(text_layer_get_layer(dateLayer), !key_indicator_date);
 }
 
 //Display Time
 static void display_time(struct tm *time) {
-  //Hour Text
+  //Hour Texts
   const char *hour_string[25] = { "zwölf", "eins","zwei", "drei", "vier", "fünf", "sechs",
-	  "sieben", "acht", "neun", "zehn", "elf", "zwölf", "eins", "zwei", "drei", "vier",
-    "fünf", "sechs", "sieben", "acht", "neun", "zehn", "elf" , "zwölf"};
-  //Minute Text
+                                 "sieben", "acht", "neun", "zehn", "elf", "zwölf", "eins", "zwei", "drei", "vier",
+                                 "fünf", "sechs", "sieben", "acht", "neun", "zehn", "elf" , "zwölf"};
+  //Minute Texts
   const char *minute_string[] = {
     "\npunkt", "eins\nnach", "zwei\nnach", "drei\nnach", "vier\nnach", "fünf\nnach",
     "sechs\nnach", "sieben\nnach", "acht\nnach", "neun\nnach", "zehn\nnach",
@@ -254,8 +270,8 @@ static void display_time(struct tm *time) {
     "neunzehn vor", "achtzehn vor", "siebzehn vor", "sechzehn vor", "drei-\nviertel",
     "vierzehn vor", "dreizehn vor", "zwölf\nvor", "elf\nvor", "zehn\nvor",
     "neun\nvor", "acht\nvor", "sieben\nvor", "sechs\nvor", "fünf\nvor",
-    "vier\nvor", "drei\nvor", "zwei\nvor", "eins\nvor"
-  };
+    "vier\nvor", "drei\nvor", "zwei\nvor", "eins\nvor" };
+  
   //Special Minute Texts
   //char minute_text_viertelvor = "Viertel\nvor"; // Viertel vor 11 = 10:45, dreiviertel
   //char minute_text_viertel = "Viertel"; // Viertel 11 = 10:15, viertel nach HINWEIS hier auch die Stunde nach vorne ziehen
@@ -267,6 +283,9 @@ static void display_time(struct tm *time) {
   // Set Time
   int hour = time->tm_hour;
   int min = time->tm_min;
+  //int wday = time->tm_wday; //weekday: day since sunday
+  int mday = time->tm_mday; //day of the month
+  int month = time->tm_mon; //months since January
   //DEBUG with second unit
   //int min = time->tm_sec;
 
@@ -328,17 +347,25 @@ static void display_time(struct tm *time) {
   strcpy(staticHourText , "");
   strcat(staticHourText , hour_text);
   text_layer_set_text(hourLayer, staticHourText);
+  
+  // Weekday
+  static char staticDateText[16];
+  //snprintf(staticDateText, sizeof(staticDateText), "%s. %i.%i.", wday_names[langId][wday], mday, month);
+  snprintf(staticDateText, sizeof(staticDateText), "%i.%i.", mday, month);
+  text_layer_set_text(dateLayer, staticDateText);
 }
 
 static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
   display_time(tick_time);
 }
 
-//######## Generic Functions ########
+/*
+  ###################################
+  ######## Generic Functions ########
+  ###################################
+*/
 
 static void window_load(Window *window) {
-  Layer *window_layer = window_get_root_layer(window);
-
   //Key
   app_message_register_inbox_received(in_received_handler); //register key receiving
 	app_message_open(512, 512); //Key buffer in- and outbound
@@ -350,12 +377,11 @@ static void window_load(Window *window) {
   key_indicator_batt_img = persist_exists(KEY_BATT_IMG) ? persist_read_bool(KEY_BATT_IMG) : key_indicator_batt_img;
   key_indicator_text_nrw = persist_exists(KEY_TEXT_NRW) ? persist_read_bool(KEY_TEXT_NRW) : key_indicator_text_nrw;
   key_indicator_text_wien = persist_exists(KEY_TEXT_WIEN) ? persist_read_bool(KEY_TEXT_WIEN) : key_indicator_text_wien;
+  key_indicator_date = persist_exists(KEY_DATE) ? persist_read_bool(KEY_DATE) : key_indicator_date;
   
   //Load Time and Text lines
   time_t now = time(NULL);
   struct tm *tick_time = localtime(&now);
-  //load_text_lines();
-  load_text_layers();
   load_text_layers();
   display_time(tick_time);
   tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
@@ -366,14 +392,12 @@ static void window_load(Window *window) {
 }
 
 static void window_unload(Window *window) {
-  /*for (int i = 1; i < TOTAL_TEXT_LINES; ++i) {
-    text_layer_destroy(text_line[i]);
-  }*/
   inverter_layer_destroy(inv_layer);
   text_layer_destroy(minuteLayer_3lines);
   text_layer_destroy(minuteLayer_2longlines);
   text_layer_destroy(minuteLayer_2biglines);
   text_layer_destroy(hourLayer);
+  text_layer_destroy(dateLayer);
 }
 
 static void init(void) {
@@ -412,6 +436,7 @@ static void deinit(void) {
   persist_write_bool(KEY_BATT_IMG, key_indicator_batt_img);
   persist_write_bool(KEY_TEXT_NRW, key_indicator_text_nrw);
   persist_write_bool(KEY_TEXT_WIEN, key_indicator_text_wien);
+  persist_write_bool(KEY_DATE, key_indicator_date);
 }
 
 int main(void) {

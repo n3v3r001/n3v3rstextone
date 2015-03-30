@@ -285,7 +285,7 @@ static void display_time(struct tm *time) {
   int min = time->tm_min;
   //int wday = time->tm_wday; //weekday: day since sunday
   int mday = time->tm_mday; //day of the month
-  int month = time->tm_mon; //months since January
+  int month = time->tm_mon +1; //months since January
   //DEBUG with second unit
   //int min = time->tm_sec;
 
